@@ -474,7 +474,7 @@
 
     <header class="app-header glass">
         <div class="header-content">
-            <img src="amcharts_weather_icons_1.0.0/logos/logo.png" class="app-logo">
+            <img src="./amcharts_weather_icons_1.0.0/logos/logo.png" class="app-logo">
             <span class="app-name">Smart Weather App</span>
         </div>
     </header>
@@ -486,7 +486,7 @@
             <button onclick="getWeatherByCity()">Search</button>
 
             <div class="temp-box">
-                <img id="mainIcon" src="amcharts_weather_icons_1.0.0/animated/day.svg">
+                <img id="mainIcon" src="./amcharts_weather_icons_1.0.0/animated/day.svg">
                 <div class="temp" id="temp">--°C</div>
                 <div class="city" id="location">Detecting location…</div>
             </div>
@@ -608,12 +608,12 @@
             else if (c.includes("cloud")) i = "cloudy-day-2.svg";
             else if (c.includes("snow")) i = "snowy-3.svg";
             else if (c.includes("thunder")) i = "thunder.svg";
-            mainIcon.src = `amcharts_weather_icons_1.0.0/animated/${i}`;
+            mainIcon.src = `./amcharts_weather_icons_1.0.0/animated/${i}`;
         }
         function card(l, v, i) {
             return `
   <div class="info-card">
-    <img src="amcharts_weather_icons_1.0.0/animated/${i}.svg">
+    <img src="./amcharts_weather_icons_1.0.0/animated/${i}.svg">
     <div class="info-text">${l}<strong>${v}</strong></div>
   </div>`;
         }
@@ -640,7 +640,7 @@
     ${closable ? '<button class="close-btn">×</button>' : ''}
     <img
       class="icon"
-      src="amcharts_weather_icons_1.0.0/static/${iconFile}"
+      src="./amcharts_weather_icons_1.0.0/static/${iconFile}"
       alt="weather"
     >
 <h4>${data.name}</h4>
@@ -680,7 +680,7 @@
                     card.className = "weather-card small";
                     card.innerHTML = `
         <img class="icon"
-          src="amcharts_weather_icons_1.0.0/static/${icon}"
+          src="./amcharts_weather_icons_1.0.0/static/${icon}"
           alt="weather">
         <h4>${place}</h4>
         <div class="temp">${temp}°C</div>
@@ -759,5 +759,6 @@
 
     </script>
 </body>
+
 
 </html>

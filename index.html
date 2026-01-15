@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Weather App</title>
+
+    <style>
+        /* ===================== ROOT & RESET ===================== */
+        :root {
+            --app-max-width: 1300px;
+            --app-side-padding: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            padding: 40px 20px;
+        }
+
+        /* ===================== WEATHER THEMES ===================== */
+        body {
+            transition: background 1.2s ease;
+            position: relative;
+            isolation: isolate;
+            overflow-x: hidden;
+        }
+
+        body.cold {
+            background: linear-gradient(135deg, #83a4d4, #b6fbff);
+        }
+
+        body.normal {
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+        }
+
+        body.hot {
+            background: linear-gradient(135deg, #f85032, #e73827);
+        }
+
+        body.rain {
+            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+        }
+
+        body.cloudy {
+            background: linear-gradient(135deg, #bdc3c7, #2c3e50);
+        }
+
+        body.hot .weather-card.small,
+        body.hot .info-card {
+            background: linear-gradient(135deg,
+                    rgba(230, 230, 230, 0.10),
+                    rgba(220, 220, 220, 0.05));
+
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        body.hot .weather-card.small {
+            box-shadow:
+                0 14px 26px rgba(0, 0, 0, 0.25),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .weather-card.small,
+        .info-card {
+            mix-blend-mode: normal;
+        }
+
+        /* ===================== CLOUD ANIMATION ===================== */
+        .cloud {
+            position: fixed;
+            left: -300px;
+            width: 220px;
+            height: 65px;
+            background: #fff;
+            border-radius: 50px;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: -1;
+            mix-blend-mode: screen;
+            animation-name: moveClouds;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        /* cloud bubbles */
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+            width: 90px;
+            height: 90px;
+            top: -45px;
+            border-radius: 50%;
+        }
+
+        .cloud::before {
+            left: 35px;
+        }
+
+        .cloud::after {
+            right: 35px;
+        }
+
+        .cloud.slow {
+            animation-duration: 90s;
+        }
+
+        .cloud.medium {
+            animation-duration: 65s;
+        }
+
+        .cloud.fast {
+            animation-duration: 45s;
+        }
+
+        @keyframes moveClouds {
+            from {
+                transform: translateX(-300px) translateY(0);
+            }
+
+            to {
+                transform: translateX(120vw) translateY(-10px);
+            }
+        }
+
+
+        /* ===================== GLASS EFFECT ===================== */
+        .glass {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.18),
+                    rgba(255, 255, 255, 0.08));
+
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 28px;
+
+            box-shadow:
+                0 30px 60px rgba(0, 0, 0, 0.35),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+        }
+
+
+        /* ===================== HEADER ===================== */
+        .app-header {
+            max-width: var(--app-max-width);
+            margin: 0 auto 35px;
+            padding: 14px var(--app-side-padding);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .app-logo {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+        }
+
+        .app-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: .6px;
+            background: linear-gradient(135deg, #0ea5e9, #22c55e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ===================== MAIN DASHBOARD ===================== */
+        #weather-container {
+            max-width: var(--app-max-width);
+            margin: auto;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1.2fr 2fr;
+            gap: 30px;
+        }
+
+        /* LEFT PANEL */
+        .left-panel input,
+        .left-panel button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+        }
+
+        .left-panel button {
+            margin-top: 10px;
+            background: linear-gradient(135deg, #43cea2, #185a9d);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .temp-box {
+            margin-top: 30px;
+        }
+
+        .temp-box img {
+            width: clamp(120px, 18vw, 170px);
+        }
+
+        .temp {
+            font-size: 68px;
+            font-weight: 700;
+        }
+
+        .city {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* RIGHT PANEL */
+        .right-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.14),
+                    rgba(255, 255, 255, 0.07));
+
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 18px;
+
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .weather-card.small,
+        .info-card {
+            mix-blend-mode: normal;
+        }
+
+        .cloud {
+            opacity: 0.5;
+            filter: blur(0.4px);
+        }
+
+        .info-card img {
+            width: 40px;
+        }
+
+        .info-text strong {
+            display: block;
+            font-size: 18px;
+        }
+
+        /* ===================== SECTION TITLES ===================== */
+        .section-title {
+            max-width: var(--app-max-width);
+            margin: 45px auto 18px;
+            padding-inline: var(--app-side-padding);
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: .4px;
+            color: #083344;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::after {
+            content: "";
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right, rgba(0, 0, 0, .35), rgba(0, 0, 0, .05));
+            border-radius: 10px;
+        }
+
+        /* ===================== CAROUSEL ===================== */
+        .cards-wrapper {
+            max-width: var(--app-max-width);
+            margin: auto;
+            padding-inline: var(--app-side-padding);
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, .4) transparent;
+        }
+
+        .cards-wrapper::-webkit-scrollbar {
+            height: 0
+        }
+
+        .cards-wrapper:hover::-webkit-scrollbar {
+            height: 6px
+        }
+
+        .cards-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .4);
+            border-radius: 10px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            width: max-content;
+        }
+
+        .cards.carousel {
+            animation: scrollLeft 40s linear infinite;
+        }
+
+        @keyframes scrollLeft {
+            from {
+                transform: translateX(0)
+            }
+
+            to {
+                transform: translateX(calc(-50% - 7.5px))
+            }
+        }
+
+        /* ===================== WEATHER CARDS ===================== */
+        .weather-card.small {
+            min-width: 220px;
+            padding: 18px;
+            border-radius: 22px;
+
+            background: linear-gradient(135deg,
+                    rgba(245, 246, 248, 0.12),
+                    rgba(240, 242, 245, 0.06));
+
+
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #000;
+
+            box-shadow:
+                0 16px 30px rgba(0, 0, 0, 0.30),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+
+
+        .weather-card.small img.icon {
+            width: clamp(44px, 5vw, 56px);
+        }
+
+        .weather-card.small h4 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .weather-card.small .temp {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .desc {
+            font-size: 15px;
+            font-weight: 600;
+            opacity: .85;
+            text-transform: capitalize;
+        }
+
+        .meta {
+            font-size: 14px;
+            opacity: .75;
+        }
+
+        .meta::before {
+            content: "• ";
+            opacity: .6;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0, 0, 0, .55);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .weather-card.small.active {
+            outline: 2px solid rgba(0, 0, 0, .25);
+        }
+
+        /* ===================== FOOTER ===================== */
+        .app-footer {
+            max-width: var(--app-max-width);
+            margin: 60px auto 20px;
+            padding: 14px var(--app-side-padding);
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .footer-content .dot {
+            opacity: .5
+        }
+
+        .footer-content strong {
+            color: #083344
+        }
+
+        /* ===================== RESPONSIVE ===================== */
+        @media(max-width:900px) {
+            #weather-container {
+                grid-template-columns: 1fr
+            }
+
+            .right-panel {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+
+        @media(max-width:520px) {
+            .right-panel {
+                grid-template-columns: 1fr
+            }
+
+            .temp {
+                font-size: 56px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Clouds -->
+    <div class="cloud slow" style="top:15%"></div>
+    <div class="cloud medium" style="top:30%; animation-delay:10s;"></div>
+    <div class="cloud fast" style="top:45%; animation-delay:20s;"></div>
+
+    <div class="cloud slow" style="top:60%; animation-delay:35s;"></div>
+    <div class="cloud medium" style="top:75%; animation-delay:50s;"></div>
+
+    <div class="cloud" style="top:12%"></div>
+    <div class="cloud" style="top:32%; animation-delay:12s"></div>
+    <div class="cloud" style="top:55%; animation-delay:24s"></div>
+
+    <header class="app-header glass">
+        <div class="header-content">
+            <img src="amcharts_weather_icons_1.0.0/logos/logo.png" class="app-logo">
+            <span class="app-name">Smart Weather App</span>
+        </div>
+    </header>
+
+    <!-- ===================== MAIN APP ===================== -->
+    <div id="weather-container" class="glass">
+        <div class="left-panel">
+            <input id="city" placeholder="Search city">
+            <button onclick="getWeatherByCity()">Search</button>
+
+            <div class="temp-box">
+                <img id="mainIcon" src="amcharts_weather_icons_1.0.0/animated/day.svg">
+                <div class="temp" id="temp">--°C</div>
+                <div class="city" id="location">Detecting location…</div>
+            </div>
+        </div>
+
+        <div class="right-panel" id="details"></div>
+    </div>
+
+    <h3 class="section-title">Recent Searches</h3>
+    <div class="cards-wrapper">
+        <div class="cards" id="recent"></div>
+    </div>
+
+    <h3 class="section-title">Famous Places for Travel</h3>
+    <div class="cards-wrapper">
+        <div class="cards" id="hills"></div>
+    </div>
+
+    <footer class="app-footer glass">
+        <div class="footer-content">
+            <span>© 2026</span>
+            <span class="dot">•</span>
+            <span>Smart Weather App</span>
+            <span class="dot">•</span>
+            <span>Designed by <strong>Navoday</strong></span>
+        </div>
+    </footer>
+
+    <!-- ===================== JAVASCRIPT ===================== -->
+
+    <script>
+        let hillsLoaded = 0;
+
+        const city = document.getElementById("city");
+        const details = document.getElementById("details");
+        const mainIcon = document.getElementById("mainIcon");
+
+        const apiKey = "1dbfb59e74edd516aaef4077e6712cfb";
+        const recentDiv = document.getElementById("recent");
+        const hillsDiv = document.getElementById("hills");
+        const hillCities = [
+            "Goa",
+            "Jaipur",
+            "Agra",
+            "Manali",
+            "Udaipur",
+            "Varanasi",
+            "Amritsar",
+            "Rishikesh",
+            "Mysuru",
+            "Kolkata"
+        ];
+
+        function getStaticIcon(condition) {
+            condition = condition.toLowerCase();
+
+            if (condition.includes("rain"))
+                return "rainy-3.svg";
+            if (condition.includes("cloud"))
+                return "cloudy.svg";
+            if (condition.includes("snow"))
+                return "snowy-3.svg";
+            if (condition.includes("thunder"))
+                return "thunder.svg";
+
+            return "day.svg";
+        }
+        window.onload = () => {
+            loadRecent();
+
+            hillCities.forEach(createHillCard);
+
+
+
+            navigator.geolocation?.getCurrentPosition(p => {
+                fetchWeather(`lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+            });
+        };
+        function fetchWeather(q) {
+            fetch(`https://api.openweathermap.org/data/2.5/weather?${q}&appid=${apiKey}&units=metric`)
+                .then(r => r.json()).then(updateUI);
+        }
+        function getWeatherByCity() {
+            const c = city.value.trim();
+            if (!c) return;
+            fetchWeather(`q=${c}`);
+            city.value = "";
+        }
+        city.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                getWeatherByCity();
+            }
+        });
+
+        function updateUI(d, fromRecent = false) {
+            document.getElementById("temp").innerText = Math.round(d.main.temp) + "°C";
+            document.getElementById("location").innerText = `${d.name}, ${d.sys.country}`;
+            setMainIcon(d.weather[0].main.toLowerCase());
+            updateBackground(
+                Math.round(d.main.temp),
+                d.weather[0].main
+            );
+
+            details.innerHTML = `
+    ${card("Humidity", d.main.humidity + "%", "cloudy")}
+    ${card("Pressure", d.main.pressure + " hPa", "weather")}
+    ${card("Visibility", d.visibility / 1000 + " km", "weather")}
+    ${card("Wind", d.wind.speed + " m/s", "weather")}
+    ${card("Clouds", d.clouds.all + "%", "cloudy")}
+    ${card("Sunrise", new Date(d.sys.sunrise * 1000).toLocaleTimeString(), "weather_sunset")}
+    ${card("Sunset", new Date(d.sys.sunset * 1000).toLocaleTimeString(), "weather_sunset")}
+  `;
+            if (!fromRecent) saveRecent(d);
+
+        }
+        function setMainIcon(c) {
+            let i = "day.svg";
+            if (c.includes("rain")) i = "rainy-3.svg";
+            else if (c.includes("cloud")) i = "cloudy-day-2.svg";
+            else if (c.includes("snow")) i = "snowy-3.svg";
+            else if (c.includes("thunder")) i = "thunder.svg";
+            mainIcon.src = `amcharts_weather_icons_1.0.0/animated/${i}`;
+        }
+        function card(l, v, i) {
+            return `
+  <div class="info-card">
+    <img src="amcharts_weather_icons_1.0.0/animated/${i}.svg">
+    <div class="info-text">${l}<strong>${v}</strong></div>
+  </div>`;
+        }
+        function saveRecent(d) {
+            let r = JSON.parse(localStorage.getItem("recent") || "[]");
+            r = r.filter(x => x.id !== d.id);
+            r.unshift(d);
+            r = r.slice(0, 8);
+            localStorage.setItem("recent", JSON.stringify(r));
+            loadRecent();
+        }
+        function loadRecent() {
+            recentDiv.innerHTML = "";
+            recentDiv.dataset.cloned = "false";
+            const data = JSON.parse(localStorage.getItem("recent") || "[]");
+            data.forEach(d => createWeatherCard(d, recentDiv, true));
+            requestAnimationFrame(() => enableCarousel(recentDiv));
+        }
+        function createWeatherCard(data, parent, closable = true) {
+            const card = document.createElement("div");
+            card.className = "weather-card small";
+            const iconFile = getStaticIcon(data.weather[0].main);
+            card.innerHTML = `
+    ${closable ? '<button class="close-btn">×</button>' : ''}
+    <img
+      class="icon"
+      src="amcharts_weather_icons_1.0.0/static/${iconFile}"
+      alt="weather"
+    >
+<h4>${data.name}</h4>
+<div class="temp">${Math.round(data.main.temp)}°C</div>
+
+<p class="desc">${data.weather[0].description}</p>
+<p class="meta">Humidity: ${data.main.humidity}%</p>
+<p class="meta">Wind: ${data.wind.speed} m/s</p>
+
+  `;
+            card.onclick = () => {
+                document.querySelectorAll(".weather-card")
+                    .forEach(c => c.classList.remove("active"));
+                card.classList.add("active");
+                updateUI(data, true);
+            };
+            if (closable) {
+                card.querySelector(".close-btn").onclick = e => {
+                    e.stopPropagation();
+                    let r = JSON.parse(localStorage.getItem("recent") || "[]");
+                    r = r.filter(x => x.id !== data.id);
+                    localStorage.setItem("recent", JSON.stringify(r));
+                    loadRecent();
+                };
+            }
+            parent.appendChild(card);
+        }
+        function createHillCard(place) {
+            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${place}&appid=${apiKey}&units=metric`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.cod !== 200) return;
+                    const temp = Math.round(d.main.temp);
+                    const icon = getTempIcon(temp);
+                    const tag = getWeatherTag(temp);
+                    const card = document.createElement("div");
+                    card.className = "weather-card small";
+                    card.innerHTML = `
+        <img class="icon"
+          src="amcharts_weather_icons_1.0.0/static/${icon}"
+          alt="weather">
+        <h4>${place}</h4>
+        <div class="temp">${temp}°C</div>
+        <p class="desc">${tag}</p>
+        <p class="meta">Tap to View Weather</p>
+      `;
+                    card.onclick = () => {
+                        document.querySelectorAll(".weather-card")
+                            .forEach(c => c.classList.remove("active"));
+                        card.classList.add("active");
+                        updateUI(d);
+                    };
+                    hillsDiv.appendChild(card);
+                    hillsLoaded++;
+                    if (hillsLoaded === hillCities.length) {
+                        requestAnimationFrame(() => enableCarousel(hillsDiv));
+                    }
+                });
+        }
+        function enableCarousel(cardsDiv) {
+            cardsDiv.classList.remove("carousel");
+            if (cardsDiv.dataset.cloned === "true") return;
+            if (cardsDiv.scrollWidth > cardsDiv.parentElement.clientWidth) {
+                const originals = Array.from(cardsDiv.children);
+                originals.forEach(card => {
+                    if (card.querySelector(".close-btn")) return;
+                    const clone = card.cloneNode(true);
+                    clone.addEventListener("click", () => card.click());
+                    cardsDiv.appendChild(clone);
+                });
+                cardsDiv.classList.add("carousel");
+                cardsDiv.dataset.cloned = "true";
+            }
+        }
+        function getWeatherTag(temp) {
+            if (temp <= 15) return "Famous for Cold Weather";
+            if (temp < 25) return "Famous for Pleasant Weather";
+            if (temp < 32) return "Famous for Warm Weather";
+            return "Famous for Hot Weather";
+        }
+        function getTempIcon(temp) {
+            if (temp <= 15) return "snowy-3.svg";
+            if (temp < 25) return "cloudy.svg";
+            if (temp < 32) return "day.svg";
+            return "weather.svg";
+        }
+
+
+        function updateBackground(temp, condition) {
+            document.body.className = "";
+
+            condition = condition.toLowerCase();
+
+            if (condition.includes("rain")) {
+                document.body.classList.add("rain");
+            }
+            else if (condition.includes("cloud")) {
+                document.body.classList.add("cloudy");
+            }
+            else if (temp <= 15) {
+                document.body.classList.add("cold");
+            }
+            else if (temp < 30) {
+                document.body.classList.add("normal");
+            }
+            else {
+                document.body.classList.add("hot");
+            }
+            document.querySelectorAll(".cloud").forEach(c => {
+                c.style.opacity = condition.includes("cloud") || condition.includes("rain")
+                    ? "0.45"
+                    : "0.25";
+            });
+
+        }
+
+    </script>
+</body>
+
+</html>
